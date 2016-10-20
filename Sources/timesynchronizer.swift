@@ -6,6 +6,8 @@ public class TimeSynchronizer
 	var systemLatency: Double = Time.Interval(milliseconds: 400)
 	var targets: Array = Array<(Double, Double)>()
 
+	public init() {}
+
 	public func addTarget(_ target: Socket) -> Int
 	{
 		let (roundTrip, differenceOnRecieve) = target.Ping()
