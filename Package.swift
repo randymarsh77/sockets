@@ -1,7 +1,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "SynchronizedSockets",
+    name: "Sockets",
     dependencies: [
 		.Package(url: "https://www.github.com/krzyzanowskim/CryptoSwift", majorVersion: 0),
 		.Package(url: "https://www.github.com/randymarsh77/cast", majorVersion: 1),

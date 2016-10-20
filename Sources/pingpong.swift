@@ -1,5 +1,4 @@
 import Foundation
-import Socks
 import Time
 
 public extension Socket

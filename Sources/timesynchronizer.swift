@@ -1,5 +1,4 @@
 import Foundation
-import SocksCore
 import Time
 
 public class TimeSynchronizer

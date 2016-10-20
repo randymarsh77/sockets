@@ -1,5 +1,4 @@
 import Foundation
-import Socks
 
 public class StructuredCommunicationSeed
 {
