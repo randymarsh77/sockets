@@ -58,9 +58,10 @@ private func EPAddressFromV4(_ addr: sockaddr_in) -> EndpointAddress
 		Cast(addressBuffer),
 		socklen_t(INET6_ADDRSTRLEN))
 
-	let port = addr.sin_port
+	let port = ntohs(addr.sin_port)
+	let cstring: UnsafePointer<CChar> = Cast(addressBuffer)!
 
-	return EndpointAddress(host: String(describing: addressBuffer), port: Int(port))
+	return EndpointAddress(host: String(cString: cstring), port: Int(port))
 }
 
 private func EPAddressFromV6(_ addr: sockaddr_in6) -> EndpointAddress
@@ -75,7 +76,12 @@ private func EPAddressFromV6(_ addr: sockaddr_in6) -> EndpointAddress
 		Cast(addressBuffer),
 		socklen_t(INET6_ADDRSTRLEN))
 
-	let port = addr.sin6_port
+	let port = ntohs(addr.sin6_port)
+	let cstring: UnsafePointer<CChar> = Cast(addressBuffer)!
 
-	return EndpointAddress(host: String(describing: addressBuffer), port: Int(port))
+	return EndpointAddress(host: String(cString: cstring), port: Int(port))
+}
+
+private func ntohs(_ value: CUnsignedShort) -> CUnsignedShort {
+	return (value << 8) + (value >> 8);
 }
