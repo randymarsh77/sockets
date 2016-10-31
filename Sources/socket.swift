@@ -1,9 +1,10 @@
 import Foundation
+import IDisposable
 import Scope
 
 public typealias SocketErrorHandler = () throws -> Void
 
-public class Socket
+public class Socket : IDisposable
 {
 	class HandlerWrapper
 	{
