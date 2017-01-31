@@ -10,7 +10,7 @@ public class TimeSynchronizer
 
 	public func addTarget(_ target: Socket) -> Int
 	{
-		let (roundTrip, differenceOnRecieve) = target.Ping()
+		let (roundTrip, differenceOnRecieve) = target.ping()
 		let index = targets.count
 		self.targets.append((roundTrip, differenceOnRecieve))
 		return index
