@@ -3,7 +3,7 @@ import Time
 
 public extension Socket
 {
-	public func Ping() -> (Double, Double)
+	public func ping() -> (Double, Double)
 	{
 		let start = Time.Current()
 		let clientTime: Double =
@@ -15,7 +15,7 @@ public extension Socket
 		return (end - start, clientTime - start)
 	}
 
-	public func Pong()
+	public func pong()
 	{
 		let _: Double =
 			StructuredCommunicationSeed(socket: self)
