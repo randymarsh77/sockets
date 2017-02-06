@@ -28,6 +28,8 @@ public class Socket : IDisposable
 		self.errorHandlers = Array<HandlerWrapper>()
 	}
 
+	public var isValid: Bool { return self.fd > 0 }
+
 	public func dispose() -> Void
 	{
 		if (self.fd > 0) { close(self.fd)}
