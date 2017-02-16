@@ -1,35 +1,41 @@
 import Foundation
 import Time
 
+public struct TimeSynchronization
+{
+	public var syncTime: Time
+	public var recieveGuess: Time
+}
+
 public class TimeSynchronizer
 {
-	var systemLatency: Double = Time.Interval(milliseconds: 400)
-	var targets: Array = Array<(Double, Double)>()
+	var systemLatency = Time.FromInterval(400, unit: .Milliseconds)
+	var targets = [NetworkLatency]()
 
 	public init() {}
 
 	public func addTarget(_ target: Socket) -> Int
 	{
-		let (roundTrip, differenceOnRecieve) = target.ping()
+		let latency = target.ping()
 		let index = targets.count
-		self.targets.append((roundTrip, differenceOnRecieve))
+		self.targets.append(latency)
 		return index
 	}
 
-	public func syncTarget(token: Int, time: Double) -> (Double, Double)
+	public func syncTarget(token: Int, time: Time) -> TimeSynchronization
 	{
-		let (roundTrip, differenceOnRecieve) = self.targets[token]
+		let latency = self.targets[token]
 
-		let start = hostToTarget(host: time + self.systemLatency, roundTrip: roundTrip, difference: differenceOnRecieve)
-		let guess = hostToTarget(host: time, roundTrip: roundTrip, difference: differenceOnRecieve)
+		let start = hostToTarget(host: time + self.systemLatency, latency: latency)
+		let guess = hostToTarget(host: time, latency: latency)
 
-		return (start, guess)
+		return TimeSynchronization(syncTime: start, recieveGuess: guess)
 	}
 }
 
-func hostToTarget(host: Double, roundTrip: Double, difference: Double) -> Double
+func hostToTarget(host: Time, latency: NetworkLatency) -> Time
 {
-	let hostTimeOnArrival = host + roundTrip / 2.0
-	let clientTime = hostTimeOnArrival + difference
+	let hostTimeOnArrival = host + Time.FromInterval(latency.roundTrip.value / 2.0, unit: latency.roundTrip.unit)
+	let clientTime = hostTimeOnArrival + latency.differenceOnRecieve
 	return clientTime
 }
