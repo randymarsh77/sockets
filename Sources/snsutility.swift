@@ -2,6 +2,7 @@
 // A partial protocol that sends timestamp tokens
 
 import Foundation
+import Time
 
 public enum SNSError : Error
 {
@@ -12,12 +13,12 @@ public let SNSHeaderLength = MemoryLayout<UInt16>.size + MemoryLayout<Double>.si
 
 public class SNSUtility
 {
-	public static func GenerateHeader(start: Double, guess: Double) -> Data
+	public static func GenerateHeader(synchronization: TimeSynchronization) -> Data
 	{
 		let bytes = UnsafeMutablePointer<UInt8>.allocate(capacity: SNSHeaderLength)
 		memcpy(bytes, UnsafeRawPointer(toByteArray(value: UInt16(0xFEED))), MemoryLayout<UInt16>.size)
-		memcpy(bytes.advanced(by: MemoryLayout<UInt16>.size), UnsafeRawPointer(toByteArray(value: start)), MemoryLayout<Double>.size)
-		memcpy(bytes.advanced(by: MemoryLayout<UInt16>.size + MemoryLayout<Double>.size), UnsafeRawPointer(toByteArray(value: guess)), MemoryLayout<Double>.size)
+		memcpy(bytes.advanced(by: MemoryLayout<UInt16>.size), UnsafeRawPointer(toByteArray(value: synchronization.syncTime.convert(to: .Seconds).value)), MemoryLayout<Double>.size)
+		memcpy(bytes.advanced(by: MemoryLayout<UInt16>.size + MemoryLayout<Double>.size), UnsafeRawPointer(toByteArray(value: synchronization.recieveGuess.convert(to: .Seconds).value)), MemoryLayout<Double>.size)
 
 		return Data(bytesNoCopy: bytes, count: SNSHeaderLength, deallocator: .free)
 	}
@@ -29,7 +30,7 @@ public class SNSUtility
 		}
 	}
 
-	public static func ParseHeader(chunk: Data) throws -> (Double, Double)
+	public static func ParseHeader(chunk: Data) throws -> TimeSynchronization
 	{
 		if chunk.count < SNSHeaderLength { throw SNSError.InvalidHeader }
 		if !IsValidHeader(chunk: chunk) { throw SNSError.InvalidHeader }
@@ -43,12 +44,12 @@ public class SNSUtility
 			guess.deallocate(capacity: 1)
 		}
 
-		return chunk.withUnsafeBytes() { (bytes: UnsafePointer<UInt8>) -> (Double, Double) in
+		return chunk.withUnsafeBytes() { (bytes: UnsafePointer<UInt8>) -> TimeSynchronization in
 
 			memcpy(start, bytes.advanced(by: MemoryLayout<UInt16>.size), MemoryLayout<Double>.size)
 			memcpy(guess, bytes.advanced(by: MemoryLayout<UInt16>.size + MemoryLayout<Double>.size), MemoryLayout<Double>.size)
 
-			return (start.pointee, guess.pointee)
+			return TimeSynchronization(syncTime: Time.FromInterval(start.pointee, unit: .Seconds), recieveGuess: Time.FromInterval(guess.pointee, unit: .Seconds))
 		}
 	}
 }
