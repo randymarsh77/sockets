@@ -1,17 +1,35 @@
 import Foundation
 
+public enum ServerError : Error
+{
+	case CreateSocketDescriptorError
+	case BindingError
+	case ListenError
+	case AcceptConnectionError
+}
+
+public enum PortOption
+{
+	case Specific(UInt16)
+	case Range(UInt16, UInt16)
+}
+
+public struct ServerOptions
+{
+	let port: PortOption
+}
+
 public class TCPServer
 {
 	var running: Bool
 
-	public init(port: UInt16, onConnection: @escaping (Socket) -> Void)
+	public init(options: ServerOptions, onConnection: @escaping (Socket) -> Void) throws
 	{
 		self.running = true
 		
 		let sock_fd = socket(AF_INET, SOCK_STREAM, 0)
 		if sock_fd == -1 {
-			perror("Failure: creating socket")
-			exit(EXIT_FAILURE)
+			throw ServerError.CreateSocketDescriptorError
 		}
 
 		var sock_opt_on = Int32(1)
@@ -21,48 +39,39 @@ public class TCPServer
 		let server_addr_size = socklen_t(MemoryLayout.size(ofValue: server_addr))
 		server_addr.sin_len = UInt8(server_addr_size)
 		server_addr.sin_family = sa_family_t(AF_INET) // chooses IPv4
-		server_addr.sin_port = port.bigEndian // chooses the port
 
-		let bind_server = withUnsafePointer(to: &server_addr) {
-			$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
-				bind(sock_fd, UnsafePointer(addr), server_addr_size)
+		var bindResult: Int32 = -1
+		switch (options.port)
+		{
+		case .Specific(let port):
+			server_addr.sin_port = port.bigEndian
+			bindResult = withUnsafePointer(to: &server_addr) {
+				$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
+					bind(sock_fd, UnsafePointer(addr), server_addr_size)
+				}
 			}
+			break
+		case .Range(let startPort, let endPort):
+			var currentPort = startPort
+			while (bindResult < 0 && currentPort <= endPort) {
+				server_addr.sin_port = currentPort.bigEndian
+				bindResult = withUnsafePointer(to: &server_addr) {
+					$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
+						bind(sock_fd, UnsafePointer(addr), server_addr_size)
+					}
+				}
+				currentPort += 1
+			}
+			break
 		}
-		if bind_server == -1 {
-			perror("Failure: binding port")
-			exit(EXIT_FAILURE)
+
+		if bindResult == -1 {
+			throw ServerError.BindingError
 		}
 
 		DispatchQueue.global(qos: .default).async
 		{
-			var stillRunning = true
-			while stillRunning && listen(sock_fd, 5) != -1
-			{
-				var client_addr = sockaddr_storage()
-				var client_addr_len = socklen_t(MemoryLayout.size(ofValue: client_addr))
-				let client_fd = withUnsafeMutablePointer(to: &client_addr) {
-					$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
-						accept(sock_fd, UnsafeMutablePointer(addr), &client_addr_len)
-					}
-				}
-
-				if client_fd == -1 {
-					perror("Failure: accepting connection")
-					exit(EXIT_FAILURE);
-				}
-
-				onConnection(Socket(fd: client_fd))
-
-				self.synced(lock: self) {
-					stillRunning = self.running
-				}
-			}
-
-			if !stillRunning
-			{
-				perror("Failure: listening")
-				exit(EXIT_FAILURE)
-			}
+			try! self.serve(sock_fd, onConnection)
 		}
 	}
 
@@ -70,6 +79,36 @@ public class TCPServer
 	{
 		synced(lock: self) {
 			self.running = false
+		}
+	}
+
+	func serve(_ sock_fd: Int32, _ onConnection: @escaping (Socket) -> Void) throws
+	{
+		var stillRunning = true
+		while stillRunning && listen(sock_fd, 5) != -1
+		{
+			var client_addr = sockaddr_storage()
+			var client_addr_len = socklen_t(MemoryLayout.size(ofValue: client_addr))
+			let client_fd = withUnsafeMutablePointer(to: &client_addr) {
+				$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
+					accept(sock_fd, UnsafeMutablePointer(addr), &client_addr_len)
+				}
+			}
+
+			if client_fd == -1 {
+				throw ServerError.AcceptConnectionError
+			}
+
+			onConnection(Socket(fd: client_fd))
+
+			self.synced(lock: self) {
+				stillRunning = self.running
+			}
+		}
+
+		if stillRunning
+		{
+			throw ServerError.ListenError
 		}
 	}
 
