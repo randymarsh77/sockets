@@ -21,6 +21,7 @@ public struct ServerOptions
 
 public class TCPServer
 {
+	let port: UInt16
 	var running: Bool
 
 	public init(options: ServerOptions, onConnection: @escaping (Socket) -> Void) throws
@@ -44,6 +45,7 @@ public class TCPServer
 		switch (options.port)
 		{
 		case .Specific(let port):
+			self.port = port
 			server_addr.sin_port = port.bigEndian
 			bindResult = withUnsafePointer(to: &server_addr) {
 				$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
@@ -62,6 +64,7 @@ public class TCPServer
 				}
 				currentPort += 1
 			}
+			self.port = currentPort - 1
 			break
 		}
 
