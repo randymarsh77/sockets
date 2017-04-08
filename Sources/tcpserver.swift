@@ -21,7 +21,7 @@ public struct ServerOptions
 
 public class TCPServer
 {
-	let port: UInt16
+	public let port: UInt16
 	var running: Bool
 
 	public init(options: ServerOptions, onConnection: @escaping (Socket) -> Void) throws
