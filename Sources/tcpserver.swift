@@ -16,6 +16,10 @@ public enum PortOption
 
 public struct ServerOptions
 {
+	public init(port: PortOption) {
+		self.port = port
+	}
+
 	let port: PortOption
 }
 
