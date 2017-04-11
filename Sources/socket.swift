@@ -63,11 +63,16 @@ public class Socket : IDisposable
 					try! wrapper.handler()
 				}
 			}
+			else if result == 0
+			{
+				keepReading = false
+				self.dispose()
+			}
 			else
 			{
 				bytesRead += UInt32(result)
 			}
-			keepReading = minBytes != 0 && bytesRead < minBytes
+			keepReading = keepReading && minBytes != 0 && bytesRead < minBytes
 		}
 		return Data(bytesNoCopy: buffer!, count: Int(bytesRead), deallocator: .free)
 	}
