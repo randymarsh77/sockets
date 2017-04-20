@@ -19,16 +19,19 @@ public class Socket : IDisposable
 	var fd: Int32
 	var errorHandlers: Array<HandlerWrapper>
 
-	public init (fd: Int32)
+	public init (fd: Int32, address: EndpointAddress)
 	{
 		var set: Int = 1
 		setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &set, UInt32(MemoryLayout<Int>.size));
 
 		self.fd = fd
 		self.errorHandlers = Array<HandlerWrapper>()
+		self.address = address
 	}
 
 	public var isValid: Bool { return self.fd > 0 }
+
+	public let address: EndpointAddress
 
 	public func dispose() -> Void
 	{

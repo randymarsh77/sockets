@@ -65,6 +65,6 @@ public class TCPClient
 
 		if p == nil { throw TCPClientError.FailedToConnect(message: "All sockets failed") }
 
-		return Socket(fd: sockfd)
+		return Socket(fd: sockfd, address: endpoint)
 	}
 }
