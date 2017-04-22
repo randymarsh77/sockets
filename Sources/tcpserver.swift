@@ -106,7 +106,7 @@ public class TCPServer
 				throw ServerError.AcceptConnectionError
 			}
 
-			onConnection(Socket(fd: client_fd, address: EndpointAddress(host: "TODO", port: 0)))
+			onConnection(Socket(fd: client_fd, address: SocketAddress.FromSockAddr(client_addr).toEndpointAddress()))
 
 			self.synced(lock: self) {
 				stillRunning = self.running
