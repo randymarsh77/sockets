@@ -25,8 +25,8 @@ public class SNSUtility
 
 	public static func IsValidHeader(chunk: Data) -> Bool
 	{
-		return chunk.count >= SNSHeaderLength && chunk.withUnsafeBytes() { (bytes: UnsafePointer<UInt16>) -> Bool in
-			bytes.pointee == 0xFEED
+		return chunk.count >= SNSHeaderLength && chunk.withUnsafeBytes() { (bytes: UnsafeRawBufferPointer) -> Bool in
+			bytes.load(fromByteOffset: 0, as: UInt16.self) == 0xFEED
 		}
 	}
 
@@ -38,10 +38,10 @@ public class SNSUtility
 		let start = UnsafeMutablePointer<Double>.allocate(capacity: 1)
 		let guess = UnsafeMutablePointer<Double>.allocate(capacity: 1)
 		defer {
-			start.deinitialize()
-			start.deallocate(capacity: 1)
-			guess.deinitialize()
-			guess.deallocate(capacity: 1)
+			start.deinitialize(count: 1)
+			start.deallocate()
+			guess.deinitialize(count: 1)
+			guess.deallocate()
 		}
 
 		return chunk.withUnsafeBytes() { (bytes: UnsafePointer<UInt8>) -> TimeSynchronization in

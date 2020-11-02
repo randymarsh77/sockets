@@ -38,7 +38,7 @@ public class StructuredCommunication<T> : StructuredCommunicationSeed
 		super.init(socket: socket)
 	}
 
-	public func send<U>(data: U) -> StructuredCommunication<T>
+	public override func send<U>(data: U) -> StructuredCommunication<T>
 	{
 		_ = super.send(data: data)
 		return self

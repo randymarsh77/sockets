@@ -10,7 +10,7 @@ internal enum SocketAddress
 
 internal extension SocketAddress
 {
-	internal static func FromSockAddr(_ addr: sockaddr_storage) -> SocketAddress
+	static func FromSockAddr(_ addr: sockaddr_storage) -> SocketAddress
 	{
 		switch addr.ss_len
 		{
@@ -23,7 +23,7 @@ internal extension SocketAddress
 		}
 	}
 
-	internal static func FromData(_ data: Data) -> SocketAddress
+	static func FromData(_ data: Data) -> SocketAddress
 	{
 		switch data.count
 		{
@@ -39,7 +39,7 @@ internal extension SocketAddress
 
 internal extension SocketAddress
 {
-	internal func toEndpointAddress() -> EndpointAddress
+	func toEndpointAddress() -> EndpointAddress
 	{
 		switch self
 		{

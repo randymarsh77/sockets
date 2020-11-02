@@ -9,7 +9,7 @@ public struct NetworkLatency
 
 public extension Socket
 {
-	public func ping() -> NetworkLatency
+	func ping() -> NetworkLatency
 	{
 		let start = Time.Now
 		let client = Time.FromMachTimeStamp(
@@ -21,7 +21,7 @@ public extension Socket
 		return NetworkLatency(differenceOnRecieve: client - start, roundTrip: end - start)
 	}
 
-	public func pong()
+	func pong()
 	{
 		let _: Double =
 			StructuredCommunicationSeed(socket: self)

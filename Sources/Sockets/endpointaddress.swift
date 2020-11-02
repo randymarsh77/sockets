@@ -15,7 +15,7 @@ public struct EndpointAddress
 
 internal extension EndpointAddress
 {
-	internal static func FromV4(_ addr: sockaddr_in) -> EndpointAddress
+	static func FromV4(_ addr: sockaddr_in) -> EndpointAddress
 	{
 		let addressBuffer = malloc(Int(INET6_ADDRSTRLEN))
 		let saddr = UnsafeMutablePointer<in_addr>.allocate(capacity: 1)
@@ -33,7 +33,7 @@ internal extension EndpointAddress
 		return EndpointAddress(host: String(cString: cstring), port: Int(port))
 	}
 
-	internal static func FromV6(_ addr: sockaddr_in6) -> EndpointAddress
+	static func FromV6(_ addr: sockaddr_in6) -> EndpointAddress
 	{
 		let addressBuffer = malloc(Int(INET6_ADDRSTRLEN))
 		let saddr = UnsafeMutablePointer<in6_addr>.allocate(capacity: 1)
