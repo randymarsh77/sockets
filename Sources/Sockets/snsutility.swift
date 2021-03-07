@@ -44,10 +44,10 @@ public class SNSUtility
 			guess.deallocate()
 		}
 
-		return chunk.withUnsafeBytes() { (bytes: UnsafePointer<UInt8>) -> TimeSynchronization in
+		return chunk.withUnsafeBytes() {
 
-			memcpy(start, bytes.advanced(by: MemoryLayout<UInt16>.size), MemoryLayout<Double>.size)
-			memcpy(guess, bytes.advanced(by: MemoryLayout<UInt16>.size + MemoryLayout<Double>.size), MemoryLayout<Double>.size)
+			memcpy(start, $0.baseAddress!.advanced(by: MemoryLayout<UInt16>.size), MemoryLayout<Double>.size)
+			memcpy(guess, $0.baseAddress!.advanced(by: MemoryLayout<UInt16>.size + MemoryLayout<Double>.size), MemoryLayout<Double>.size)
 
 			return TimeSynchronization(syncTime: Time.FromInterval(start.pointee, unit: .Seconds), recieveGuess: Time.FromInterval(guess.pointee, unit: .Seconds))
 		}

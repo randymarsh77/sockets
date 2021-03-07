@@ -21,8 +21,8 @@ public class StructuredCommunicationSeed
 	{
 		let bytes = UInt32(MemoryLayout<T>.size)
 		let data = socket.read(bytes, minBytes: bytes)
-		let value = data?.withUnsafeBytes() { (bytes: UnsafePointer<T>) -> T in
-			bytes.pointee
+		let value = data?.withUnsafeBytes() {
+			$0.baseAddress!.assumingMemoryBound(to: T.self).pointee
 		}
 		return StructuredCommunication<T>(socket: socket, value: value!)
 	}

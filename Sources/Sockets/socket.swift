@@ -82,7 +82,9 @@ public class Socket : IDisposable
 
 	public func write(_ data: Data) -> Void
 	{
-		let result = data.withUnsafeBytes{ (bytes) in send(self.fd, bytes, data.count, 0) }
+		let result = data.withUnsafeBytes{
+			send(self.fd, $0.baseAddress!, data.count, 0)
+		}
 		if result < 0
 		{
 			for wrapper in self.errorHandlers {
