@@ -12,7 +12,7 @@ public extension Socket
 	func ping() -> NetworkLatency
 	{
 		let start = Time.Now
-		let client = Time.FromMachTimeStamp(
+		let client = Time.FromSystemTimeStamp(
 			StructuredCommunicationSeed(socket: self)
 				.send(data: start)
 				.recieve()
@@ -26,7 +26,7 @@ public extension Socket
 		let _: Double =
 			StructuredCommunicationSeed(socket: self)
 				.recieve()
-				.send(data: Time.Now.machTimeStamp)
+				.send(data: Time.Now.systemTimeStamp)
 				.communicate()
 	}
 }
