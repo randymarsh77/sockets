@@ -3,7 +3,7 @@ import IDisposable
 import Scope
 
 #if os(Linux)
-let SendFlags: Int32 = MSG_NOSIGNAL
+let SendFlags = Int32(MSG_NOSIGNAL)
 #else
 let SendFlags: Int32 = 0
 #endif
