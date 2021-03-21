@@ -1,4 +1,9 @@
-import Foundation
+#if os(macOS)
+import class Foundation.NetService
+#endif
+#if os(Linux)
+import NetService
+#endif
 
 public extension NetService
 {

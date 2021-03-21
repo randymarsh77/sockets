@@ -1,6 +1,18 @@
 // swift-tools-version:5.1
 import PackageDescription
 
+var dependencies = [
+	"CryptoSwift",
+	"Cast",
+	"IDisposable",
+	"Scope",
+	"Time",
+]
+
+#if os(Linux)
+dependencies.append("NetService")
+#endif
+
 let package = Package(
 	name: "Sockets",
 	products: [
@@ -15,17 +27,12 @@ let package = Package(
 		.package(url: "https://github.com/randymarsh77/idisposable", .branch("master")),
 		.package(url: "https://github.com/randymarsh77/scope", .branch("master")),
 		.package(url: "https://github.com/randymarsh77/time", .branch("master")),
+		.package(url: "https://github.com/Bouke/NetService", .branch("master")),
 	],
 	targets: [
 		.target(
 			name: "Sockets",
-			dependencies: [
-				"CryptoSwift",
-				"Cast",
-				"IDisposable",
-				"Scope",
-				"Time",
-			]
+			dependencies: dependencies.map { Target.Dependency(stringLiteral: $0) }
 		),
 	]
 )

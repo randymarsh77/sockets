@@ -29,6 +29,15 @@
         }
       },
       {
+        "package": "NetService",
+        "repositoryURL": "https://github.com/Bouke/NetService",
+        "state": {
+          "branch": "master",
+          "revision": "08e1f7663fd4b09b9f4ad165be89704c7cd2e3f8",
+          "version": null
+        }
+      },
+      {
         "package": "Scope",
         "repositoryURL": "https://github.com/randymarsh77/scope",
         "state": {

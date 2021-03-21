@@ -18,12 +18,17 @@ jobs:
 
   linux:
     runs-on: ubuntu-latest
-    container:
-      image: swift:5.2
-      options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --security-opt apparmor=unconfined
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+
+      - name: Setup Swift
+        uses: YOCKOW/Action-setup-swift@v1
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt install libavahi-compat-libdnssd-dev
 
       - name: Build
         run: swift build
