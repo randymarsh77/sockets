@@ -2,6 +2,12 @@ import Foundation
 import IDisposable
 import Scope
 
+#if os(Linux)
+let SendFlags: Int32 = MSG_NOSIGNAL
+#else
+let SendFlags: Int32 = 0
+#endif
+
 public typealias SocketErrorHandler = () throws -> Void
 
 public class Socket : IDisposable
@@ -21,9 +27,10 @@ public class Socket : IDisposable
 
 	public init (fd: Int32, address: EndpointAddress)
 	{
+#if !os(Linux)
 		var set: Int = 1
 		setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &set, UInt32(MemoryLayout<Int>.size));
-
+#endif
 		self.fd = fd
 		self.errorHandlers = Array<HandlerWrapper>()
 		self.address = address
@@ -82,8 +89,8 @@ public class Socket : IDisposable
 
 	public func write(_ data: Data) -> Void
 	{
-		let result = data.withUnsafeBytes{
-			send(self.fd, $0.baseAddress!, data.count, 0)
+		let result = data.withUnsafeBytes {
+			return send(self.fd, $0.baseAddress!, data.count, SendFlags)
 		}
 		if result < 0
 		{
