@@ -22,7 +22,7 @@ let package = Package(
 		),
 	],
 	dependencies: [
-		.package(url: "https://github.com/krzyzanowskim/CryptoSwift", .exact("1.3.1")),
+		.package(url: "https://github.com/krzyzanowskim/CryptoSwift", .exact("1.8.1")),
 		.package(url: "https://github.com/randymarsh77/cast", .branch("master")),
 		.package(url: "https://github.com/randymarsh77/idisposable", .branch("master")),
 		.package(url: "https://github.com/randymarsh77/scope", .branch("master")),
