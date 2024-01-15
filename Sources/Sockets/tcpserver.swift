@@ -1,21 +1,18 @@
 import Foundation
 
-public enum ServerError : Error
-{
+public enum ServerError: Error {
 	case CreateSocketDescriptorError
 	case BindingError
 	case ListenError
 	case AcceptConnectionError
 }
 
-public enum PortOption
-{
+public enum PortOption {
 	case Specific(UInt16)
 	case Range(UInt16, UInt16)
 }
 
-public struct ServerOptions
-{
+public struct ServerOptions {
 	public init(port: PortOption) {
 		self.port = port
 	}
@@ -23,15 +20,13 @@ public struct ServerOptions
 	let port: PortOption
 }
 
-public class TCPServer
-{
+public class TCPServer {
 	public let port: UInt16
 	var running: Bool
 
-	public init(options: ServerOptions, onConnection: @escaping (Socket) -> Void) throws
-	{
+	public init(options: ServerOptions, onConnection: @escaping (Socket) -> Void) throws {
 		self.running = true
-		
+
 		let sock_fd = socket(AF_INET, SOCK_STREAM, 0)
 		if sock_fd == -1 {
 			throw ServerError.CreateSocketDescriptorError
@@ -46,8 +41,7 @@ public class TCPServer
 		server_addr.sin_family = sa_family_t(AF_INET) // chooses IPv4
 
 		var bindResult: Int32 = -1
-		switch (options.port)
-		{
+		switch options.port {
 		case .Specific(let port):
 			self.port = port
 			server_addr.sin_port = port.bigEndian
@@ -59,7 +53,7 @@ public class TCPServer
 			break
 		case .Range(let startPort, let endPort):
 			var currentPort = startPort
-			while (bindResult < 0 && currentPort <= endPort) {
+			while bindResult < 0 && currentPort <= endPort {
 				server_addr.sin_port = currentPort.bigEndian
 				bindResult = withUnsafePointer(to: &server_addr) {
 					$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
@@ -76,24 +70,20 @@ public class TCPServer
 			throw ServerError.BindingError
 		}
 
-		DispatchQueue.global(qos: .default).async
-		{
+		DispatchQueue.global(qos: .default).async {
 			try! self.serve(sock_fd, onConnection)
 		}
 	}
 
-	public func dispose() -> Void
-	{
+	public func dispose() {
 		synced(lock: self) {
 			self.running = false
 		}
 	}
 
-	func serve(_ sock_fd: Int32, _ onConnection: @escaping (Socket) -> Void) throws
-	{
+	func serve(_ sock_fd: Int32, _ onConnection: @escaping (Socket) -> Void) throws {
 		var stillRunning = true
-		while stillRunning && listen(sock_fd, 5) != -1
-		{
+		while stillRunning && listen(sock_fd, 5) != -1 {
 			var client_addr = sockaddr_storage()
 			var client_addr_len = socklen_t(MemoryLayout.size(ofValue: client_addr))
 			let client_fd = withUnsafeMutablePointer(to: &client_addr) {
@@ -113,14 +103,12 @@ public class TCPServer
 			}
 		}
 
-		if stillRunning
-		{
+		if stillRunning {
 			throw ServerError.ListenError
 		}
 	}
 
-	func synced(lock: AnyObject, closure: () -> ())
-	{
+	func synced(lock: AnyObject, closure: () -> Void) {
 		objc_sync_enter(lock)
 		defer { objc_sync_exit(lock) }
 		closure()

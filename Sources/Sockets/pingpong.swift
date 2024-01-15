@@ -1,16 +1,13 @@
 import Foundation
 import Time
 
-public struct NetworkLatency
-{
+public struct NetworkLatency {
 	public var differenceOnRecieve: Time
 	public var roundTrip: Time
 }
 
-public extension Socket
-{
-	func ping() -> NetworkLatency
-	{
+public extension Socket {
+	func ping() -> NetworkLatency {
 		let start = Time.Now
 		let client = Time.FromSystemTimeStamp(
 			StructuredCommunicationSeed(socket: self)
@@ -21,8 +18,7 @@ public extension Socket
 		return NetworkLatency(differenceOnRecieve: client - start, roundTrip: end - start)
 	}
 
-	func pong()
-	{
+	func pong() {
 		let _: Double =
 			StructuredCommunicationSeed(socket: self)
 				.recieve()

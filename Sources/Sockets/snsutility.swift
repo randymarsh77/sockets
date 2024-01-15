@@ -4,17 +4,14 @@
 import Foundation
 import Time
 
-public enum SNSError : Error
-{
+public enum SNSError: Error {
 	case InvalidHeader
 }
 
 public let SNSHeaderLength = MemoryLayout<UInt16>.size + MemoryLayout<Double>.size + MemoryLayout<Double>.size
 
-public class SNSUtility
-{
-	public static func GenerateHeader(synchronization: TimeSynchronization) -> Data
-	{
+public class SNSUtility {
+	public static func GenerateHeader(synchronization: TimeSynchronization) -> Data {
 		let bytes = UnsafeMutablePointer<UInt8>.allocate(capacity: SNSHeaderLength)
 		memcpy(bytes, UnsafeRawPointer(toByteArray(value: UInt16(0xFEED))), MemoryLayout<UInt16>.size)
 		memcpy(bytes.advanced(by: MemoryLayout<UInt16>.size), UnsafeRawPointer(toByteArray(value: synchronization.syncTime.convert(to: .Seconds).value)), MemoryLayout<Double>.size)
@@ -23,15 +20,13 @@ public class SNSUtility
 		return Data(bytesNoCopy: bytes, count: SNSHeaderLength, deallocator: .free)
 	}
 
-	public static func IsValidHeader(chunk: Data) -> Bool
-	{
+	public static func IsValidHeader(chunk: Data) -> Bool {
 		return chunk.count >= SNSHeaderLength && chunk.withUnsafeBytes() { (bytes: UnsafeRawBufferPointer) -> Bool in
 			bytes.load(fromByteOffset: 0, as: UInt16.self) == 0xFEED
 		}
 	}
 
-	public static func ParseHeader(chunk: Data) throws -> TimeSynchronization
-	{
+	public static func ParseHeader(chunk: Data) throws -> TimeSynchronization {
 		if chunk.count < SNSHeaderLength { throw SNSError.InvalidHeader }
 		if !IsValidHeader(chunk: chunk) { throw SNSError.InvalidHeader }
 
