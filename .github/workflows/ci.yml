@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  PACKAGE_NAME: Cast
+  PACKAGE_NAME: Sockets
 
 jobs:
   macos-arm:
@@ -71,6 +71,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Apple Bonjour headers
+        run: |
+          sudo apt-get update
+          sudo apt install libavahi-compat-libdnssd-dev
 
       - name: Lint
         uses: cirruslabs/swiftlint-action@v1
