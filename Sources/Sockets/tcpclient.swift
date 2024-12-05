@@ -1,8 +1,8 @@
 import Foundation
 
 public enum TCPClientError: Error {
-	case SocketError(code: Int32, message: String)
-	case FailedToConnect(message: String)
+	case socketError(code: Int32, message: String)
+	case failedToConnect(message: String)
 }
 
 public class TCPClient {
@@ -12,12 +12,8 @@ public class TCPClient {
 		self.endpoint = endpoint
 	}
 
-	public func dispose() {
-		// TODO: Probably something here
-	}
-
 	public func tryConnect() throws -> Socket? {
-		var sockfd: Int32 = -1
+		var sockFD: Int32 = -1
 		var hints = addrinfo(
 			ai_flags: 0,
 			ai_family: AF_UNSPEC,
@@ -31,32 +27,32 @@ public class TCPClient {
 		var result: UnsafeMutablePointer<addrinfo>?
 
 		let error = getaddrinfo(endpoint.host, "\(endpoint.port)", &hints, &result)
-		if error != 0 { throw TCPClientError.SocketError(code: error, message: "getaddrinfo") }
+		if error != 0 { throw TCPClientError.socketError(code: error, message: "getaddrinfo") }
 
-		var p = result
-		while p != nil {
-			let current = p!.pointee
+		var ptr = result
+		while ptr != nil {
+			let current = ptr!.pointee
 
-			sockfd = socket(current.ai_family, current.ai_socktype, current.ai_protocol)
-			if sockfd == -1 {
+			sockFD = socket(current.ai_family, current.ai_socktype, current.ai_protocol)
+			if sockFD == -1 {
 				perror("client: socket")
-				p = current.ai_next
+				ptr = current.ai_next
 				continue
 			}
 
-			let connectResult = connect(sockfd, current.ai_addr, current.ai_addrlen)
+			let connectResult = connect(sockFD, current.ai_addr, current.ai_addrlen)
 			if connectResult == -1 {
-				close(sockfd)
+				close(sockFD)
 				perror("client: connect")
-				p = current.ai_next
+				ptr = current.ai_next
 				continue
 			}
 
 			break
 		}
 
-		if p == nil { throw TCPClientError.FailedToConnect(message: "All sockets failed") }
+		if ptr == nil { throw TCPClientError.failedToConnect(message: "All sockets failed") }
 
-		return Socket(fd: sockfd, address: endpoint)
+		return Socket(fd: sockFD, address: endpoint)
 	}
 }

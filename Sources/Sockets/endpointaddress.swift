@@ -1,5 +1,5 @@
-import Foundation
 import Cast
+import Foundation
 
 public struct EndpointAddress {
 	public var host: String
@@ -11,37 +11,37 @@ public struct EndpointAddress {
 	}
 }
 
-internal extension EndpointAddress {
-	static func FromV4(_ addr: sockaddr_in) -> EndpointAddress {
+extension EndpointAddress {
+	static func fromV4(_ addr: sockaddr_in) -> EndpointAddress {
 		let addressBuffer = malloc(Int(INET6_ADDRSTRLEN))
 		let saddr = UnsafeMutablePointer<in_addr>.allocate(capacity: 1)
 		saddr.initialize(to: addr.sin_addr)
 
 		_ = inet_ntop(
 			Int32(addr.sin_family),
-			Cast(saddr)!,
-			Cast(addressBuffer),
+			cast(saddr)!,
+			cast(addressBuffer),
 			socklen_t(INET6_ADDRSTRLEN))
 
 		let port = ntohs(addr.sin_port)
-		let cstring: UnsafePointer<CChar> = Cast(addressBuffer)!
+		let cstring: UnsafePointer<CChar> = cast(addressBuffer)!
 
 		return EndpointAddress(host: String(cString: cstring), port: Int(port))
 	}
 
-	static func FromV6(_ addr: sockaddr_in6) -> EndpointAddress {
+	static func fromV6(_ addr: sockaddr_in6) -> EndpointAddress {
 		let addressBuffer = malloc(Int(INET6_ADDRSTRLEN))
 		let saddr = UnsafeMutablePointer<in6_addr>.allocate(capacity: 1)
 		saddr.initialize(to: addr.sin6_addr)
 
 		_ = inet_ntop(
 			Int32(addr.sin6_family),
-			Cast(saddr)!,
-			Cast(addressBuffer),
+			cast(saddr)!,
+			cast(addressBuffer),
 			socklen_t(INET6_ADDRSTRLEN))
 
 		let port = ntohs(addr.sin6_port)
-		let cstring: UnsafePointer<CChar> = Cast(addressBuffer)!
+		let cstring: UnsafePointer<CChar> = cast(addressBuffer)!
 
 		return EndpointAddress(host: String(cString: cstring), port: Int(port))
 	}

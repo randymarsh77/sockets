@@ -1,15 +1,15 @@
 import Foundation
 
 public enum ServerError: Error {
-	case CreateSocketDescriptorError
-	case BindingError
-	case ListenError
-	case AcceptConnectionError
+	case createSocketDescriptorError
+	case bindingError
+	case listenError
+	case acceptConnectionError
 }
 
 public enum PortOption {
-	case Specific(UInt16)
-	case Range(UInt16, UInt16)
+	case specific(UInt16)
+	case range(UInt16, UInt16)
 }
 
 public struct ServerOptions {
@@ -20,58 +20,58 @@ public struct ServerOptions {
 	let port: PortOption
 }
 
-public class TCPServer {
+public final class TCPServer: @unchecked Sendable {
 	public let port: UInt16
 	var running: Bool
 
-	public init(options: ServerOptions, onConnection: @escaping (Socket) -> Void) throws {
+	public init(options: ServerOptions, onConnection: @escaping @Sendable (Socket) -> Void) throws {
 		self.running = true
 
-		let sock_fd = socket(AF_INET, SOCK_STREAM, 0)
-		if sock_fd == -1 {
-			throw ServerError.CreateSocketDescriptorError
+		let sockFD = socket(AF_INET, SOCK_STREAM, 0)
+		if sockFD == -1 {
+			throw ServerError.createSocketDescriptorError
 		}
 
-		var sock_opt_on = Int32(1)
-		setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &sock_opt_on, socklen_t(MemoryLayout.size(ofValue: sock_opt_on)))
+		var sockOptOn = Int32(1)
+		setsockopt(
+			sockFD, SOL_SOCKET, SO_REUSEADDR, &sockOptOn,
+			socklen_t(MemoryLayout.size(ofValue: sockOptOn)))
 
-		var server_addr = sockaddr_in()
-		let server_addr_size = socklen_t(MemoryLayout.size(ofValue: server_addr))
-		server_addr.sin_len = UInt8(server_addr_size)
-		server_addr.sin_family = sa_family_t(AF_INET) // chooses IPv4
+		var serverAddr = sockaddr_in()
+		let serverAddrSize = socklen_t(MemoryLayout.size(ofValue: serverAddr))
+		serverAddr.sin_len = UInt8(serverAddrSize)
+		serverAddr.sin_family = sa_family_t(AF_INET)  // chooses IPv4
 
 		var bindResult: Int32 = -1
 		switch options.port {
-		case .Specific(let port):
+		case .specific(let port):
 			self.port = port
-			server_addr.sin_port = port.bigEndian
-			bindResult = withUnsafePointer(to: &server_addr) {
+			serverAddr.sin_port = port.bigEndian
+			bindResult = withUnsafePointer(to: &serverAddr) {
 				$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
-					bind(sock_fd, UnsafePointer(addr), server_addr_size)
+					bind(sockFD, UnsafePointer(addr), serverAddrSize)
 				}
 			}
-			break
-		case .Range(let startPort, let endPort):
+		case .range(let startPort, let endPort):
 			var currentPort = startPort
 			while bindResult < 0 && currentPort <= endPort {
-				server_addr.sin_port = currentPort.bigEndian
-				bindResult = withUnsafePointer(to: &server_addr) {
+				serverAddr.sin_port = currentPort.bigEndian
+				bindResult = withUnsafePointer(to: &serverAddr) {
 					$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
-						bind(sock_fd, UnsafePointer(addr), server_addr_size)
+						bind(sockFD, UnsafePointer(addr), serverAddrSize)
 					}
 				}
 				currentPort += 1
 			}
 			self.port = currentPort - 1
-			break
 		}
 
 		if bindResult == -1 {
-			throw ServerError.BindingError
+			throw ServerError.bindingError
 		}
 
 		DispatchQueue.global(qos: .default).async {
-			try! self.serve(sock_fd, onConnection)
+			try? self.serve(sockFD, onConnection)
 		}
 	}
 
@@ -81,22 +81,25 @@ public class TCPServer {
 		}
 	}
 
-	func serve(_ sock_fd: Int32, _ onConnection: @escaping (Socket) -> Void) throws {
+	func serve(_ sockFD: Int32, _ onConnection: @escaping (Socket) -> Void) throws {
 		var stillRunning = true
-		while stillRunning && listen(sock_fd, 5) != -1 {
-			var client_addr = sockaddr_storage()
-			var client_addr_len = socklen_t(MemoryLayout.size(ofValue: client_addr))
-			let client_fd = withUnsafeMutablePointer(to: &client_addr) {
+		while stillRunning && listen(sockFD, 5) != -1 {
+			var clientAddr = sockaddr_storage()
+			var clientAddrLen = socklen_t(MemoryLayout.size(ofValue: clientAddr))
+			let clientFD = withUnsafeMutablePointer(to: &clientAddr) {
 				$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
-					accept(sock_fd, UnsafeMutablePointer(addr), &client_addr_len)
+					accept(sockFD, UnsafeMutablePointer(addr), &clientAddrLen)
 				}
 			}
 
-			if client_fd == -1 {
-				throw ServerError.AcceptConnectionError
+			if clientFD == -1 {
+				throw ServerError.acceptConnectionError
 			}
 
-			onConnection(Socket(fd: client_fd, address: SocketAddress.FromSockAddr(client_addr).toEndpointAddress()))
+			onConnection(
+				Socket(
+					fd: clientFD,
+					address: SocketAddress.fromSockAddr(clientAddr).toEndpointAddress()))
 
 			self.synced(lock: self) {
 				stillRunning = self.running
@@ -104,7 +107,7 @@ public class TCPServer {
 		}
 
 		if stillRunning {
-			throw ServerError.ListenError
+			throw ServerError.listenError
 		}
 	}
 

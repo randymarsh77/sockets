@@ -2,27 +2,27 @@ import Foundation
 import Time
 
 public struct NetworkLatency {
-	public var differenceOnRecieve: Time
+	public var differenceOnReceive: Time
 	public var roundTrip: Time
 }
 
-public extension Socket {
-	func ping() -> NetworkLatency {
-		let start = Time.Now
-		let client = Time.FromSystemTimeStamp(
+extension Socket {
+	public func ping() -> NetworkLatency {
+		let start = Time.now
+		let client = Time.fromSystemTimeStamp(
 			StructuredCommunicationSeed(socket: self)
 				.send(data: start)
-				.recieve()
+				.receive()
 				.communicate())
-		let end = Time.Now
-		return NetworkLatency(differenceOnRecieve: client - start, roundTrip: end - start)
+		let end = Time.now
+		return NetworkLatency(differenceOnReceive: client - start, roundTrip: end - start)
 	}
 
-	func pong() {
+	public func pong() {
 		let _: Double =
 			StructuredCommunicationSeed(socket: self)
-				.recieve()
-				.send(data: Time.Now.systemTimeStamp)
-				.communicate()
+			.receive()
+			.send(data: Time.now.systemTimeStamp)
+			.communicate()
 	}
 }

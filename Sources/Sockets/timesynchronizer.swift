@@ -3,11 +3,11 @@ import Time
 
 public struct TimeSynchronization {
 	public var syncTime: Time
-	public var recieveGuess: Time
+	public var receiveGuess: Time
 }
 
 public class TimeSynchronizer {
-	var systemLatency = Time.FromInterval(400, unit: .Milliseconds)
+	var systemLatency = Time.fromInterval(400, unit: .milliseconds)
 	var targets = [NetworkLatency]()
 
 	public init() {}
@@ -25,12 +25,13 @@ public class TimeSynchronizer {
 		let start = hostToTarget(host: time + self.systemLatency, latency: latency)
 		let guess = hostToTarget(host: time, latency: latency)
 
-		return TimeSynchronization(syncTime: start, recieveGuess: guess)
+		return TimeSynchronization(syncTime: start, receiveGuess: guess)
 	}
 }
 
 func hostToTarget(host: Time, latency: NetworkLatency) -> Time {
-	let hostTimeOnArrival = host + Time.FromInterval(latency.roundTrip.value / 2.0, unit: latency.roundTrip.unit)
-	let clientTime = hostTimeOnArrival + latency.differenceOnRecieve
+	let hostTimeOnArrival =
+		host + Time.fromInterval(latency.roundTrip.value / 2.0, unit: latency.roundTrip.unit)
+	let clientTime = hostTimeOnArrival + latency.differenceOnReceive
 	return clientTime
 }
