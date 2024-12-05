@@ -74,8 +74,8 @@ jobs:
 
       - name: Install Apple Bonjour headers
         run: |
-          sudo apt-get update
-          sudo apt install libavahi-compat-libdnssd-dev
+          apt-get update
+          apt install libavahi-compat-libdnssd-dev
 
       - name: Lint
         uses: cirruslabs/swiftlint-action@v1
