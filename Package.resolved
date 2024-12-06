@@ -1,5 +1,5 @@
 {
-  "originHash" : "d5af94141f7fd892143a2a5f14f363b4892697441939f1e70c15cb281f4f3f4c",
+  "originHash" : "0e2397ca0f5f124eaf7356bbca7ee7e9a1ec8883746ac6bab69ba498fc0e88e9",
   "pins" : [
     {
       "identity" : "cast",
@@ -31,10 +31,10 @@
     {
       "identity" : "netservice",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Bouke/NetService",
+      "location" : "https://github.com/randymarsh77/NetService",
       "state" : {
-        "branch" : "master",
-        "revision" : "08e1f7663fd4b09b9f4ad165be89704c7cd2e3f8"
+        "branch" : "swift-6",
+        "revision" : "9f98f5131f7c49bdca33be99992253d7c1377b2a"
       }
     },
     {

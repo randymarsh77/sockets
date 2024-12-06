@@ -27,7 +27,7 @@ let package = Package(
 		.package(url: "https://github.com/randymarsh77/idisposable", branch: "master"),
 		.package(url: "https://github.com/randymarsh77/scope", branch: "master"),
 		.package(url: "https://github.com/randymarsh77/time", branch: "master"),
-		.package(url: "https://github.com/Bouke/NetService", branch: "master"),
+		.package(url: "https://github.com/randymarsh77/NetService", branch: "swift-6"),
 	],
 	targets: [
 		.target(
