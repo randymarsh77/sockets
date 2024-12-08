@@ -12,17 +12,29 @@ public class TCPClient {
 		self.endpoint = endpoint
 	}
 
-	public func tryConnect() throws -> Socket? {
+	public func tryConnect() throws -> Socket {
 		var sockFD: Int32 = -1
-		var hints = addrinfo(
-			ai_flags: 0,
-			ai_family: AF_UNSPEC,
-			ai_socktype: SOCK_STREAM,
-			ai_protocol: IPPROTO_TCP,
-			ai_addrlen: 0,
-			ai_canonname: nil,
-			ai_addr: nil,
-			ai_next: nil)
+		#if os(Linux)
+			var hints = addrinfo(
+				ai_flags: 0,
+				ai_family: AF_UNSPEC,
+				ai_socktype: Int32(1),  // SOCK_STREAM
+				ai_protocol: Int32(IPPROTO_TCP),
+				ai_addrlen: 0,
+				ai_addr: nil,
+				ai_canonname: nil,
+				ai_next: nil)
+		#else
+			var hints = addrinfo(
+				ai_flags: 0,
+				ai_family: AF_UNSPEC,
+				ai_socktype: SOCK_STREAM,
+				ai_protocol: IPPROTO_TCP,
+				ai_addrlen: 0,
+				ai_canonname: nil,
+				ai_addr: nil,
+				ai_next: nil)
+		#endif
 
 		var result: UnsafeMutablePointer<addrinfo>?
 

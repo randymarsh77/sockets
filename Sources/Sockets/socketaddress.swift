@@ -9,10 +9,10 @@ internal enum SocketAddress {
 
 extension SocketAddress {
 	static func fromSockAddr(_ addr: sockaddr_storage) -> SocketAddress {
-		switch addr.ss_len {
-		case UInt8(MemoryLayout<sockaddr_in>.size):
+		switch UInt8(addr.ss_family) {
+		case UInt8(AF_INET):
 			return .IPV4(sto4(addr))
-		case UInt8(MemoryLayout<sockaddr_in6>.size):
+		case UInt8(AF_INET6):
 			return .IPV6(sto6(addr))
 		default:
 			return .unknown

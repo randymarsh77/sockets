@@ -20,14 +20,25 @@ public struct ServerOptions {
 	let port: PortOption
 }
 
-public final class TCPServer: @unchecked Sendable {
+@available(macOS 10.15.0, *)
+public final actor TCPServer: @unchecked Sendable {
 	public let port: UInt16
-	var running: Bool
+
+	@MainActor
+	private var running: Bool
 
 	public init(options: ServerOptions, onConnection: @escaping @Sendable (Socket) -> Void) throws {
-		self.running = true
+		running = true
 
-		let sockFD = socket(AF_INET, SOCK_STREAM, 0)
+		#if os(Linux)
+			let domain = Int32(2)  // AF_INET
+			let type = Int32(1)  // SOCK_STREAM
+		#else
+			let domain = AF_INET
+			let type = SOCK_STREAM
+		#endif
+
+		let sockFD = socket(domain, type, 0)
 		if sockFD == -1 {
 			throw ServerError.createSocketDescriptorError
 		}
@@ -39,7 +50,9 @@ public final class TCPServer: @unchecked Sendable {
 
 		var serverAddr = sockaddr_in()
 		let serverAddrSize = socklen_t(MemoryLayout.size(ofValue: serverAddr))
-		serverAddr.sin_len = UInt8(serverAddrSize)
+		#if !os(Linux)
+			serverAddr.sin_len = UInt8(serverAddrSize)
+		#endif
 		serverAddr.sin_family = sa_family_t(AF_INET)  // chooses IPv4
 
 		var bindResult: Int32 = -1
@@ -71,19 +84,23 @@ public final class TCPServer: @unchecked Sendable {
 		}
 
 		DispatchQueue.global(qos: .default).async {
-			try? self.serve(sockFD, onConnection)
+			Task {
+				try? await self.serve(sockFD, onConnection)
+			}
 		}
 	}
 
+	@MainActor
 	public func dispose() {
-		synced(lock: self) {
-			self.running = false
-		}
+		running = false
+
+		let client = TCPClient(endpoint: EndpointAddress(host: "localhost", port: Int(port)))
+		let socket = try? client.tryConnect()
+		socket?.dispose()
 	}
 
-	func serve(_ sockFD: Int32, _ onConnection: @escaping (Socket) -> Void) throws {
-		var stillRunning = true
-		while stillRunning && listen(sockFD, 5) != -1 {
+	func serve(_ sockFD: Int32, _ onConnection: @escaping (Socket) -> Void) async throws {
+		while await isRunning() && listen(sockFD, 5) != -1 {
 			var clientAddr = sockaddr_storage()
 			var clientAddrLen = socklen_t(MemoryLayout.size(ofValue: clientAddr))
 			let clientFD = withUnsafeMutablePointer(to: &clientAddr) {
@@ -96,24 +113,24 @@ public final class TCPServer: @unchecked Sendable {
 				throw ServerError.acceptConnectionError
 			}
 
-			onConnection(
-				Socket(
-					fd: clientFD,
-					address: SocketAddress.fromSockAddr(clientAddr).toEndpointAddress()))
+			let socket = Socket(
+				fd: clientFD,
+				address: SocketAddress.fromSockAddr(clientAddr).toEndpointAddress())
 
-			self.synced(lock: self) {
-				stillRunning = self.running
+			if await isRunning() {
+				onConnection(socket)
+			} else {
+				socket.dispose()
 			}
 		}
 
-		if stillRunning {
+		if await isRunning() {
 			throw ServerError.listenError
 		}
 	}
 
-	func synced(lock: AnyObject, closure: () -> Void) {
-		objc_sync_enter(lock)
-		defer { objc_sync_exit(lock) }
-		closure()
+	@MainActor
+	func isRunning() -> Bool {
+		return running
 	}
 }
