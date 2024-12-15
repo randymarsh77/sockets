@@ -26,7 +26,7 @@ public final actor TCPServer: @unchecked Sendable {
 
 	private var running: Bool
 
-	public init(options: ServerOptions, onConnection: @escaping @Sendable (Socket) -> Void) throws {
+	public init(options: ServerOptions, onConnection: @escaping @Sendable (Socket) async -> Void) throws {
 		running = true
 
 		#if os(Linux)
@@ -97,7 +97,7 @@ public final actor TCPServer: @unchecked Sendable {
 		socket?.dispose()
 	}
 
-	func serve(_ sockFD: Int32, _ onConnection: @escaping (Socket) -> Void) async throws {
+	func serve(_ sockFD: Int32, _ onConnection: @escaping (Socket) async -> Void) async throws {
 		while running && listen(sockFD, 5) != -1 {
 			var clientAddr = sockaddr_storage()
 			let clientAddrLen = socklen_t(MemoryLayout.size(ofValue: clientAddr))
@@ -124,7 +124,7 @@ public final actor TCPServer: @unchecked Sendable {
 				address: SocketAddress.fromSockAddr(clientAddr).toEndpointAddress())
 
 			if running {
-				onConnection(socket)
+				await onConnection(socket)
 			} else {
 				socket.dispose()
 			}
