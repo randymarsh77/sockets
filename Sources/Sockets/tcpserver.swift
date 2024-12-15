@@ -24,7 +24,6 @@ public struct ServerOptions {
 public final actor TCPServer: @unchecked Sendable {
 	public let port: UInt16
 
-	@MainActor
 	private var running: Bool
 
 	public init(options: ServerOptions, onConnection: @escaping @Sendable (Socket) -> Void) throws {
@@ -90,7 +89,6 @@ public final actor TCPServer: @unchecked Sendable {
 		}
 	}
 
-	@MainActor
 	public func dispose() {
 		running = false
 
@@ -100,14 +98,22 @@ public final actor TCPServer: @unchecked Sendable {
 	}
 
 	func serve(_ sockFD: Int32, _ onConnection: @escaping (Socket) -> Void) async throws {
-		while await isRunning() && listen(sockFD, 5) != -1 {
+		while running && listen(sockFD, 5) != -1 {
 			var clientAddr = sockaddr_storage()
-			var clientAddrLen = socklen_t(MemoryLayout.size(ofValue: clientAddr))
-			let clientFD = withUnsafeMutablePointer(to: &clientAddr) {
-				$0.withMemoryRebound(to: sockaddr.self, capacity: 1) { addr in
-					accept(sockFD, UnsafeMutablePointer(addr), &clientAddrLen)
+			let clientAddrLen = socklen_t(MemoryLayout.size(ofValue: clientAddr))
+			let addressPtr = withUnsafeMutablePointer(to: &clientAddr) {
+				$0.withMemoryRebound(to: sockaddr.self, capacity: 1){ addr in
+					UnsafeMutablePointer(addr)
 				}
 			}
+			let clientFDTask =
+				Task {
+					var clientAddrLenRef = clientAddrLen
+					return accept(sockFD, addressPtr, &clientAddrLenRef)
+				}
+
+			let clientFDResult = await clientFDTask.result
+			let clientFD = clientFDResult.get()
 
 			if clientFD == -1 {
 				throw ServerError.acceptConnectionError
@@ -117,20 +123,15 @@ public final actor TCPServer: @unchecked Sendable {
 				fd: clientFD,
 				address: SocketAddress.fromSockAddr(clientAddr).toEndpointAddress())
 
-			if await isRunning() {
+			if running {
 				onConnection(socket)
 			} else {
 				socket.dispose()
 			}
 		}
 
-		if await isRunning() {
+		if running {
 			throw ServerError.listenError
 		}
-	}
-
-	@MainActor
-	func isRunning() -> Bool {
-		return running
 	}
 }
