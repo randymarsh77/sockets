@@ -8,7 +8,7 @@ import Scope
 	let sendFlags: Int32 = 0
 #endif
 
-public typealias SocketErrorHandler = () throws -> Void
+public typealias SocketErrorHandler = () async throws -> Void
 
 @available(iOS 13.0.0, *)
 @available(macOS 10.15.0, *)
@@ -51,11 +51,11 @@ public final actor Socket: Sendable, IAsyncDisposable {
 		}
 	}
 
-	public func read(maxBytes: UInt32) -> Data? {
-		return self.read(maxBytes, minBytes: 0)
+	public func read(maxBytes: UInt32) async -> Data? {
+		return await self.read(maxBytes, minBytes: 0)
 	}
 
-	public func read(_ maxBytes: UInt32, minBytes: UInt32 = 0) -> Data? {
+	public func read(_ maxBytes: UInt32, minBytes: UInt32 = 0) async -> Data? {
 		let buffer = malloc(Int(maxBytes))
 		var bytesRead = UInt32(0)
 		var keepReading = true
@@ -64,7 +64,7 @@ public final actor Socket: Sendable, IAsyncDisposable {
 				self.fd, buffer!.advanced(by: Int(bytesRead)), Int(maxBytes) - Int(bytesRead), 0)
 			if result < 0 {
 				for wrapper in self.errorHandlers {
-					try? wrapper.handler()
+					try? await wrapper.handler()
 				}
 			} else if result == 0 {
 				keepReading = false
@@ -77,13 +77,13 @@ public final actor Socket: Sendable, IAsyncDisposable {
 		return Data(bytesNoCopy: buffer!, count: Int(bytesRead), deallocator: .free)
 	}
 
-	public func write(_ data: Data) {
+	public func write(_ data: Data) async {
 		let result = data.withUnsafeBytes {
 			return send(self.fd, $0.baseAddress!, data.count, sendFlags)
 		}
 		if result < 0 {
 			for wrapper in self.errorHandlers {
-				try? wrapper.handler()
+				try? await wrapper.handler()
 			}
 		} else if result != data.count {
 			print("Tried to send: ", data.count, " but only sent: ", result)
