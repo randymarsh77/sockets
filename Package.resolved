@@ -1,5 +1,5 @@
 {
-  "originHash" : "6baf51a1294f4dab7d37d803349e54c59cb357f5b0c7df37befdbd55f04ea2b0",
+  "originHash" : "0e2397ca0f5f124eaf7356bbca7ee7e9a1ec8883746ac6bab69ba498fc0e88e9",
   "pins" : [
     {
       "identity" : "cast",
@@ -43,7 +43,7 @@
       "location" : "https://github.com/randymarsh77/scope",
       "state" : {
         "branch" : "master",
-        "revision" : "974fb1ee39e435a213885eb9eb423bf09a8ee80a"
+        "revision" : "3261f9bc51030e33967fc0ab504ae5ab692caa63"
       }
     },
     {

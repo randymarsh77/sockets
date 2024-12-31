@@ -8,13 +8,13 @@ import Scope
 	let sendFlags: Int32 = 0
 #endif
 
-public typealias SocketErrorHandler = () async throws -> Void
+public typealias SocketErrorHandler = @Sendable () async throws -> Void
 
 @available(iOS 13.0.0, *)
 @available(macOS 10.15.0, *)
 public final actor Socket: Sendable, IAsyncDisposable {
-	class HandlerWrapper {
-		var handler: SocketErrorHandler
+	final class HandlerWrapper: Sendable {
+		let handler: SocketErrorHandler
 
 		init(handler: @escaping SocketErrorHandler) {
 			self.handler = handler
@@ -47,8 +47,12 @@ public final actor Socket: Sendable, IAsyncDisposable {
 		let wrapper = HandlerWrapper(handler: handler)
 		self.errorHandlers.append(wrapper)
 		return Scope {
-			self.errorHandlers = self.errorHandlers.filter({ $0 === wrapper })
+			await self.removeErrorHandler(wrapper)
 		}
+	}
+
+	private func removeErrorHandler(_ wrapper: HandlerWrapper) {
+		self.errorHandlers = self.errorHandlers.filter({ $0 === wrapper })
 	}
 
 	public func read(maxBytes: UInt32) async -> Data? {
