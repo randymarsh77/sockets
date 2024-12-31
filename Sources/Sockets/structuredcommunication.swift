@@ -1,5 +1,7 @@
 import Foundation
 
+@available(iOS 13.0.0, *)
+@available(macOS 10.15.0, *)
 public extension Socket {
 	func getResponse<TRequest, TResponse>(data: TRequest) -> TResponse {
 		let dataBytes = UnsafeMutablePointer<TRequest>.allocate(capacity: 1)

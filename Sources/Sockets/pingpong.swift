@@ -6,6 +6,8 @@ public struct NetworkLatency: Sendable {
 	public let roundTrip: Time
 }
 
+@available(iOS 13.0.0, *)
+@available(macOS 10.15.0, *)
 extension Socket {
 	public func ping() -> NetworkLatency {
 		let start = Time.now

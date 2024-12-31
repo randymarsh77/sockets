@@ -21,6 +21,8 @@ public struct ServerOptions {
 	let port: PortOption
 }
 
+@available(iOS 13.0, *)
+@available(macOS 10.15, *)
 public final actor TCPServer: IAsyncDisposable, @unchecked Sendable {
 	public let port: UInt16
 

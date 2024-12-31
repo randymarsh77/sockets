@@ -10,6 +10,8 @@ import Scope
 
 public typealias SocketErrorHandler = () throws -> Void
 
+@available(iOS 13.0.0, *)
+@available(macOS 10.15.0, *)
 public final actor Socket: Sendable, IAsyncDisposable {
 	class HandlerWrapper {
 		var handler: SocketErrorHandler

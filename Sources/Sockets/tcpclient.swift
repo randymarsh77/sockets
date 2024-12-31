@@ -5,6 +5,8 @@ public enum TCPClientError: Error {
 	case failedToConnect(message: String)
 }
 
+@available(iOS 13.0.0, *)
+@available(macOS 10.15.0, *)
 public class TCPClient {
 	let endpoint: EndpointAddress
 
