@@ -1,43 +1,30 @@
 import Foundation
 
-public class StructuredCommunicationSeed {
-	var socket: Socket
-
-	public init(socket: Socket) {
-		self.socket = socket
-	}
-
-	public func send<T>(data: T) -> StructuredCommunicationSeed {
-		let dataBytes = UnsafeMutablePointer<T>.allocate(capacity: 1)
+public extension Socket {
+	func getResponse<TRequest, TResponse>(data: TRequest) -> TResponse {
+		let dataBytes = UnsafeMutablePointer<TRequest>.allocate(capacity: 1)
 		dataBytes.initialize(to: data)
-		socket.write(Data(bytesNoCopy: dataBytes, count: MemoryLayout<T>.size, deallocator: .free))
-		return self
+		self.write(Data(bytesNoCopy: dataBytes, count: MemoryLayout<TRequest>.size, deallocator: .free))
+
+		let bytes = UInt32(MemoryLayout<TResponse>.size)
+		let data = self.read(bytes, minBytes: bytes)
+		let value = data?.withUnsafeBytes {
+			$0.baseAddress!.assumingMemoryBound(to: TResponse.self).pointee
+		}
+		return value!
 	}
 
-	public func receive<T>() -> StructuredCommunication<T> {
+	func receiveAndRespond<T>(data: T) -> T {
 		let bytes = UInt32(MemoryLayout<T>.size)
-		let data = socket.read(bytes, minBytes: bytes)
-		let value = data?.withUnsafeBytes {
+		let request = self.read(bytes, minBytes: bytes)
+		let value = request?.withUnsafeBytes {
 			$0.baseAddress!.assumingMemoryBound(to: T.self).pointee
 		}
-		return StructuredCommunication<T>(socket: socket, value: value!)
-	}
-}
 
-public class StructuredCommunication<T>: StructuredCommunicationSeed {
-	var accumulator: T
+		let dataBytes = UnsafeMutablePointer<T>.allocate(capacity: 1)
+		dataBytes.initialize(to: data)
+		self.write(Data(bytesNoCopy: dataBytes, count: MemoryLayout<T>.size, deallocator: .free))
 
-	public init(socket: Socket, value: T) {
-		self.accumulator = value
-		super.init(socket: socket)
-	}
-
-	public override func send<U>(data: U) -> StructuredCommunication<T> {
-		_ = super.send(data: data)
-		return self
-	}
-
-	public func communicate() -> T {
-		return self.accumulator
+		return value!
 	}
 }

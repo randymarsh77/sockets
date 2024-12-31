@@ -6,7 +6,7 @@ public enum TCPClientError: Error {
 }
 
 public class TCPClient {
-	var endpoint: EndpointAddress
+	let endpoint: EndpointAddress
 
 	public init(endpoint: EndpointAddress) {
 		self.endpoint = endpoint

@@ -1,4 +1,5 @@
 import Foundation
+import IDisposable
 
 public enum ServerError: Error {
 	case createSocketDescriptorError
@@ -20,8 +21,7 @@ public struct ServerOptions {
 	let port: PortOption
 }
 
-@available(macOS 10.15.0, *)
-public final actor TCPServer: @unchecked Sendable {
+public final actor TCPServer: IAsyncDisposable, @unchecked Sendable {
 	public let port: UInt16
 
 	private var running: Bool
@@ -89,12 +89,12 @@ public final actor TCPServer: @unchecked Sendable {
 		}
 	}
 
-	public func dispose() {
+	public func dispose() async {
 		running = false
 
 		let client = TCPClient(endpoint: EndpointAddress(host: "localhost", port: Int(port)))
 		let socket = try? client.tryConnect()
-		socket?.dispose()
+		await socket?.dispose()
 	}
 
 	func serve(_ sockFD: Int32, _ onConnection: @escaping (Socket) async -> Void) async throws {
@@ -126,7 +126,7 @@ public final actor TCPServer: @unchecked Sendable {
 			if running {
 				await onConnection(socket)
 			} else {
-				socket.dispose()
+				await socket.dispose()
 			}
 		}
 

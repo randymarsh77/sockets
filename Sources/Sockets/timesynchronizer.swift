@@ -1,19 +1,19 @@
 import Foundation
 import Time
 
-public struct TimeSynchronization {
-	public var syncTime: Time
-	public var receiveGuess: Time
+public struct TimeSynchronization: Sendable {
+	public let syncTime: Time
+	public let receiveGuess: Time
 }
 
-public class TimeSynchronizer {
+public actor TimeSynchronizer: Sendable {
 	var systemLatency = Time.fromInterval(400, unit: .milliseconds)
 	var targets = [NetworkLatency]()
 
 	public init() {}
 
-	public func addTarget(_ target: Socket) -> Int {
-		let latency = target.ping()
+	public func addTarget(_ target: Socket) async -> Int {
+		let latency = await target.ping()
 		let index = targets.count
 		self.targets.append(latency)
 		return index

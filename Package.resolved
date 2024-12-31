@@ -1,5 +1,5 @@
 {
-  "originHash" : "0e2397ca0f5f124eaf7356bbca7ee7e9a1ec8883746ac6bab69ba498fc0e88e9",
+  "originHash" : "6baf51a1294f4dab7d37d803349e54c59cb357f5b0c7df37befdbd55f04ea2b0",
   "pins" : [
     {
       "identity" : "cast",
@@ -25,7 +25,7 @@
       "location" : "https://github.com/randymarsh77/idisposable",
       "state" : {
         "branch" : "master",
-        "revision" : "fc259ea73b73ef5f84d7c10258961a9b75074078"
+        "revision" : "768542b13317f12238d7ccdcbde3110cf0ecbb32"
       }
     },
     {
@@ -52,7 +52,7 @@
       "location" : "https://github.com/randymarsh77/time",
       "state" : {
         "branch" : "master",
-        "revision" : "4a53383b95e2a6f4210f41bcfa471fd1ea8056a2"
+        "revision" : "05c78f73028727c113e7913ebd3cb7afe6a8b94b"
       }
     }
   ],

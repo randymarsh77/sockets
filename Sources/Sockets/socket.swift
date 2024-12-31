@@ -10,7 +10,7 @@ import Scope
 
 public typealias SocketErrorHandler = () throws -> Void
 
-public class Socket: IDisposable {
+public final actor Socket: Sendable, IAsyncDisposable {
 	class HandlerWrapper {
 		var handler: SocketErrorHandler
 
